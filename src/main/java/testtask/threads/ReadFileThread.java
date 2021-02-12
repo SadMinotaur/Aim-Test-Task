@@ -4,24 +4,23 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.CountDownLatch;
 
 public class ReadFileThread extends Thread {
 
     private final String path;
-    private CyclicBarrier cyclicBarrier;
+    private CountDownLatch cyclicBarrier;
 
     public ReadFileThread(String path) {
         this.path = path;
     }
 
-    public ReadFileThread(String path, CyclicBarrier cyclicBarrier) {
+    public ReadFileThread(String path, CountDownLatch cyclicBarrier) {
         this.path = path;
         this.cyclicBarrier = cyclicBarrier;
     }
 
-    private Map<Integer, String[]> readLines(String path) throws BrokenBarrierException, InterruptedException, IOException {
+    private Map<Integer, String[]> readLines(String path) throws IOException {
         Map<Integer, String[]> lines = new HashMap<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
             String line = reader.readLine();
@@ -46,16 +45,25 @@ public class ReadFileThread extends Thread {
         return retString;
     }
 
-    private void writeFile(Map<String, Set<String>> values) {
+    private void writeFile(Map<String, Set<String>> values) throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(values.size());
+        for (String file : values.keySet()) {
+            new WriteFileThread(file, values.get(file).toArray(new String[0]), countDownLatch).start();
+        }
+        countDownLatch.await();
+        System.out.println("Done with " + path);
     }
 
     @Override
     public void run() {
         try {
             writeFile(getPrintStrings(readLines(path)));
-            cyclicBarrier.await();
-        } catch (BrokenBarrierException | InterruptedException | IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        } finally {
+            if (cyclicBarrier != null) {
+                cyclicBarrier.countDown();
+            }
         }
     }
 }
