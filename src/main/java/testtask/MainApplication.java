@@ -14,7 +14,7 @@ public class MainApplication {
         System.out.println("Enter \"exit\" to exit");
         while (!exit) {
             Scanner sc = new Scanner(System.in);
-            String input = sc.nextLine();
+            String input = sc.nextLine().trim();
             switch (input) {
                 case "done": {
                     try {

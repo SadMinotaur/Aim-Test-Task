@@ -9,15 +9,15 @@ import java.util.concurrent.CountDownLatch;
 public class ReadFileThread extends Thread {
 
     private final String path;
-    private CountDownLatch cyclicBarrier;
+    private CountDownLatch countDownLatch;
 
     public ReadFileThread(String path) {
         this.path = path;
     }
 
-    public ReadFileThread(String path, CountDownLatch cyclicBarrier) {
+    public ReadFileThread(String path, CountDownLatch countDownLatch) {
         this.path = path;
-        this.cyclicBarrier = cyclicBarrier;
+        this.countDownLatch = countDownLatch;
     }
 
     private Map<Integer, String[]> readLines(String path) throws IOException {
@@ -61,8 +61,8 @@ public class ReadFileThread extends Thread {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
-            if (cyclicBarrier != null) {
-                cyclicBarrier.countDown();
+            if (countDownLatch != null) {
+                countDownLatch.countDown();
             }
         }
     }
